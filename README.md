@@ -1,29 +1,134 @@
-Working in a command line environment is recommended for ease of use with git and dvc. If on Windows, WSL1 or 2 is recommended.
 
-# Environment Set up (pip or conda)
-* Option 1: use the supplied file `environment.yml` to create a new environment with conda
-* Option 2: use the supplied file `requirements.txt` to create a new environment with pip
-    
-## Repositories
-* Create a directory for the project and initialize git.
-    * As you work on the code, continually commit changes. Trained models you want to use in production must be committed to GitHub.
-* Connect your local git repo to GitHub.
-* Setup GitHub Actions on your repo. You can use one of the pre-made GitHub Actions if at a minimum it runs pytest and flake8 on push and requires both to pass without error.
-    * Make sure you set up the GitHub Action to have the same version of Python as you used in development.
+# Census Income Prediction — Scalable ML Pipeline with FastAPI
 
-# Data
-* Download census.csv and commit it to dvc.
-* This data is messy, try to open it in pandas and see what you get.
-* To clean it, use your favorite text editor to remove all spaces.
+## Project Overview
 
-# Model
-* Using the starter code, write a machine learning model that trains on the clean data and saves the model. Complete any function that has been started.
-* Write unit tests for at least 3 functions in the model code.
-* Write a function that outputs the performance of the model on slices of the data.
-    * Suggestion: for simplicity, the function can just output the performance on slices of just the categorical features.
-* Write a model card using the provided template.
+This project implements a machine learning pipeline that predicts whether an individual's annual income is greater than $50,000 using census demographic and employment data.
 
-# API Creation
-*  Create a RESTful API using FastAPI this must implement:
-    * GET on the root giving a welcome message.
-    * POST that does model inference.
+The project includes model training, evaluation, a REST API, automated tests, and continuous integration.
+
+## Model
+
+- Algorithm: RandomForestClassifier
+- Features: Census demographic, education, occupation, and employment attributes
+- Target: Annual income >$50K versus <=$50K
+- Training/testing: Stratified 80/20 split
+- Random seed: 42
+
+### Test Set Performance
+
+| Metric | Score |
+|---|---|
+| Precision | 0.7327 |
+| Recall | 0.6397 |
+| F1 | 0.6830 |
+
+Performance across categorical feature slices is recorded in `slice_output.txt`.
+
+## Installation
+
+Create the Conda environment:
+
+```bash
+conda env create -f environment.yml
+conda activate fastapi
+```
+
+Alternatively, install dependencies using:
+
+```bash
+pip install -r requirements.txt
+```
+
+## Model Training
+
+Run the training script:
+
+```bash
+python train_model.py
+```
+
+The script trains the model, evaluates its performance, and saves the trained model and encoder in the `model/` directory.
+
+## Run the FastAPI Application
+
+Start the local API:
+
+```bash
+uvicorn main:app --reload
+```
+
+The application runs at:
+
+http://127.0.0.1:8000
+
+Interactive API documentation:
+
+http://127.0.0.1:8000/docs
+
+### API Endpoints
+
+**GET /**
+
+Returns a welcome message.
+
+**POST /data/**
+
+Accepts census features as JSON and returns a predicted income category:
+
+- `>50K`
+- `<=50K`
+
+## Local API Testing
+
+With the API running, execute:
+
+```bash
+python local_api.py
+```
+
+This sends GET and POST requests and prints the response codes and returned results.
+
+## Unit Tests
+
+Run:
+
+```bash
+pytest -v test_ml.py
+```
+
+Three automated tests validate:
+
+1. Inference returns one prediction per input record.
+2. Classification metrics are calculated correctly.
+3. Saving and loading a trained model preserves predictions.
+
+## Code Quality
+
+Run:
+
+```bash
+flake8 . --count --exit-zero --select=E9,F63,F7,F82 --show-source --statistics
+flake8 . --count --max-complexity=10 --max-line-length=127 --statistics
+```
+
+## Continuous Integration
+
+GitHub Actions automatically runs linting and unit tests on pushes to the `main` branch using Python 3.10.
+
+Successful CI execution is documented in `screenshots/continuous_integration.png`.
+
+## Repository Evidence
+
+The `screenshots/` directory contains:
+
+- `unit_test.png`
+- `local_api.png`
+- `continuous_integration.png`
+
+## Limitations
+
+Model performance may vary across demographic and employment subgroups. The repository includes categorical slice-level evaluation results to support inspection of these differences.
+
+This model is an educational demonstration and should not be used to make consequential decisions about individuals.
+
