@@ -132,3 +132,4 @@ Model performance may vary across demographic and employment subgroups. The repo
 
 This model is an educational demonstration and should not be used to make consequential decisions about individuals.
 
+**GitHub Repository:** https://github.com/MFJones3/Deploying-a-Scalable-ML-Pipeline-with-FastAPI
